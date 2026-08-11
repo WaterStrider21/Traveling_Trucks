@@ -10,8 +10,11 @@ let nodes = [];
 let trucks = {};
 let packagesMap = new Map();
 
-let playing = false; let lastTime = 0; const speed = 0.0009;
+let playing = false; 
+let lastTime = 0; 
+const speed = 0.0009;
 
+// Layout nodes in a circular pattern around the hub
 function layoutNodes(addresses){
   const n = addresses.length;
   const radius = Math.min(W,H)/2 - 80;
@@ -20,7 +23,7 @@ function layoutNodes(addresses){
     return {id:i,label:addr,x:hub.x + Math.cos(angle)*radius,y:hub.y + Math.sin(angle)*radius};
   });
 }
-
+// Build trucks data structure from API response
 function buildTrucks(api){
   // api.trucks: object with keys '1','2','3' and arrays of package objects
   trucks = {};
@@ -33,6 +36,7 @@ function buildTrucks(api){
   }
 }
 
+// Draw the hub, nodes, routes, and trucks on the canvas
 function draw(){
   ctx.clearRect(0,0,W,H);
   // hub
