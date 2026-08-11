@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>WGUPS Visual Frontend</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>WGUPS — Visual Delivery Simulator</h1>
+    <div id="info">Date: <span id="date"></span> — Total mileage: <span id="mileage">0.00</span> mi</div>
+  </header>
+
+  <main>
+    <section id="controls">
+      <div>
+        <label for="timeInput">Time (HH:MM AM/PM):</label>
+        <input id="timeInput" value="08:00 AM" />
+      </div>
+      <div class="buttons">
+        <button id="simulateBtn">Start Simulation</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="resetBtn">Reset</button>
+      </div>
+      <div class="query">
+        <select id="viewSelect">
+          <option value="all">View: All Packages</option>
+          <option value="byId">View: By ID</option>
+          <option value="byStatus">View: By Status</option>
+          <option value="byTruck">View: By Truck</option>
+        </select>
+        <input id="queryInput" placeholder="Enter ID, status, or truck #" />
+        <button id="queryBtn">Show</button>
+      </div>
+    </section>
+
+    <section id="workspace">
+      <canvas id="mapCanvas" width="900" height="600"></canvas>
+      <aside id="panel">
+        <h2>Packages</h2>
+        <div id="packageList"></div>
+      </aside>
+    </section>
+  </main>
+
+  <footer>
+    <small>Interactive visual frontend — trucks 1, 2 and 3 move to each stop sequentially.</small>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
