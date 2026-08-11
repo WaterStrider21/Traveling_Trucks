@@ -189,6 +189,7 @@ from urllib.parse import urlparse
 
 def _build_api_payload():
     # Build an addresses list ordered by the address_dict indices
+    print("DEBUG -package 1:", hash_table.lookup(1))
     try:
         max_index = max(address_dict.values()) + 1 if address_dict else 0
     except Exception:
@@ -206,6 +207,7 @@ def _build_api_payload():
         return {
             'id': p.package_id,
             'address': p.address,
+            #add something for the new API
             'city': getattr(p, 'city', None),
             'state': getattr(p, 'state', None),
             'zip_code': getattr(p, 'zip_code', None),
@@ -218,11 +220,17 @@ def _build_api_payload():
         }
 
     # Use the truck lists defined earlier in this file (avoid redefining/duplicating)
+   # trucks_mapping = {
+      #  '1': truck_1_list,
+      #  '2': truck_2_list,
+       # '3': truck_3_list
+   # }
+
     trucks_mapping = {
-        '1': truck_1_list,
-        '2': truck_2_list,
-        '3': truck_3_list
-    }
+    '1': [1, 13, 14, 15, 16, 19, 20, 29, 30, 31, 34, 37, 40, 10, 11, 12],
+    '2': [3, 6, 18, 25, 28, 32, 36, 38, 2, 4, 5, 7, 8, 17, 21, 22],
+    '3': [9, 23, 24, 26, 27, 33, 35, 39]
+}
 
     trucks_out = {}
     for t, pkg_list in trucks_mapping.items():
@@ -278,3 +286,4 @@ def _serve_api(port=8001):
 # If the script is run with the argument 'serve', start the API instead of the UI.
 if __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] == 'serve':
     _serve_api(port=8001)
+#test and debug
