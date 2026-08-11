@@ -208,6 +208,7 @@ def _build_api_payload():
             'id': p.package_id,
             'address': p.address,
             #add something for the new API
+            'address_index': address_dict.get(p.address),
             'city': getattr(p, 'city', None),
             'state': getattr(p, 'state', None),
             'zip_code': getattr(p, 'zip_code', None),
