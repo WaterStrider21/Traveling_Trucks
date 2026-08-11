@@ -27,7 +27,7 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         if parsed.path == '/routes' or parsed.path == '/api/routes':
             try:
-                results = Main.compute_routes()
+                results = Main._build_api_payload()
                 self._set_headers(200)
                 self.wfile.write(json.dumps(results, default=str).encode('utf-8'))
             except Exception as e:
