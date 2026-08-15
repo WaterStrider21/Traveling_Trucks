@@ -63,6 +63,17 @@ function draw() {
   for (const tKey of Object.keys(trucks)) {
     const tr = trucks[tKey]; ctx.fillStyle = tr.color; ctx.beginPath(); ctx.rect(tr.x - 10, tr.y - 10, 20, 14); ctx.fill(); ctx.fillStyle = '#000'; ctx.fillText('' + tKey, tr.x - 3, tr.y - 0);
   }
+  for (const tkey of Object.keys(trucks)) {{
+    const trucksFilter = trucks[tkey];
+    if (activeTruckFilter.type === 'byTruck' && tkey !== activeTruckFilter.value)  continue;
+    if (activeTruckfilter.type ==='byId'){
+      const id = Number(activeTruckFilter.value);
+      const matches = trucksFilter.route.some(r => r.pkgId === id);
+      if (!matches) continue;
+    } 
+
+    }
+  }
 }
 
 function step(dt) {
@@ -104,7 +115,10 @@ document.getElementById('pauseBtn').addEventListener('click', () => { playing = 
 document.getElementById('resetBtn').addEventListener('click', () => { playing = false; lastTime = 0; for (const tKey of Object.keys(trucks)) { trucks[tKey].x = hub.x; trucks[tKey].y = hub.y; trucks[tKey].idx = 0; trucks[tKey].delivered = []; } });
 //hide other trucks and packages on the simulation when filtering by truck, ID, or status
 document.getElementById('queryBtn').addEventListener('click', () => {
-  const view = document.getElementById('viewSelect').value; const q = document.getElementById('queryInput').value.trim();
+  const view = document.getElementById('viewSelect').value; 
+  const filterValue = document.getElementById('queryInput').value.trim();
+  activeFiler = { type: view, value: filterValue };
+  renderPackagePanel();
   if (view === 'all') renderPackagePanel();
   else if (view === 'byId') { const id = parseInt(q); renderPackagePanel(pkg => pkg.id === id); }
   else if (view === 'byTruck') { const t = q; if (trucks[t]) { const ids = trucks[t].route.map(r => r.pkgId); renderPackagePanel(pkg => ids.includes(pkg.id)); } }
