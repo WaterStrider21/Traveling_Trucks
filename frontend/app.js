@@ -46,18 +46,56 @@ function draw() {
   ctx.fillStyle = '#333';
   ctx.beginPath();
   ctx.arc(hub.x, hub.y, 8, 0, Math.PI * 2);
-  ctx.fill(); ctx.fillStyle = '#000';
+  ctx.fill(); 
+  ctx.fillStyle = '#000';
   ctx.fillText('Hub', hub.x + 10, hub.y + 4);
 
   // nodes
-  for (const n of nodes) { ctx.fillStyle = '#036'; ctx.beginPath(); ctx.arc(n.x, n.y, 6, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#000'; ctx.fillText((n.id + 1) + ': ' + n.label, n.x + 8, n.y + 4); }
+  for (const n of nodes) { 
+    ctx.fillStyle = '#036';
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, 6, 0, Math.PI * 2);
+    ctx.fill(); ctx.fillStyle = '#000';
+    ctx.fillText((n.id + 1) + ': ' + n.label, n.x + 8, n.y + 4);
+   }
 
   // routes
   for (const tKey of Object.keys(trucks)) {
-    const tr = trucks[tKey]; if (!tr.route.length) continue; ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.beginPath(); ctx.moveTo(hub.x, hub.y);
-    for (const step of tr.route) { const n = nodes[step.addrIdx]; if (n) ctx.lineTo(n.x, n.y); }
+    const tr = trucks[tKey]; 
+
+    if (activeTruckFilter.type === 'byTruck' && tKey !== activeTruckFilter.value)  continue;
+
+    if (activeTruckFilter.type ==='byId'){
+      const id = Number(activeTruckFilter.value);
+      const matches = tr.route.some(r => r.pkgId === id);
+      if (!matches) continue;
+    }
+
+    if (activeTruckFilter.type === 'byStatus') {
+      const requestedStatus = activeTruckFilter.value.toLowerCase();
+      const truckStatus = tr.delivered.length> 0? 'delivered' : 'en route';
+      if (!truckStatus.includes(requestedStatus)) continue;
+    }
+
+    if (tr.route.length){ 
+    ctx.strokeStyle = 'rgba(0,0,0,0.06)'; 
+    ctx.beginPath(); 
+    ctx.moveTo(hub.x, hub.y);
+    for (const step of tr.route) { 
+      const n = nodes[step.addrIdx]; 
+      if (n) ctx.lineTo(n.x, n.y);
+     }
     ctx.stroke();
   }
+  //truck
+  ctx.fillStyle = tr.color;
+  ctx.beginPath();
+  ctx.rect(tr.x -10, tr.y-10, 20, 14);
+  ctx.fill();
+  ctx.fillStyle = '#000';
+  ctx.fillText('' + tKey, tr.x - 3, tr.y - 0);
+  }
+}
 
   // trucks
   for (const tKey of Object.keys(trucks)) {
@@ -74,7 +112,7 @@ function draw() {
 
     }
   }
-}
+
 
 function step(dt) {
   for (const tKey of Object.keys(trucks)) {
