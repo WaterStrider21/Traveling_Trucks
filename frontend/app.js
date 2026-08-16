@@ -39,6 +39,31 @@ function buildTrucks(api) {
   }
 }
 
+function matchesTruckFilter(tKey) {
+  const tr = trucks[tKey];
+
+  if (activeTruckFilter.type === 'all' || !activeTruckFilter.type) {
+    return true;
+  }
+
+  if (activeTruckFilter.type === 'byTruck') {
+    return tKey === activeTruckFilter.value;
+  }
+
+  if (activeTruckFilter.type === 'byId') {
+    const id = Number(activeTruckFilter.value);
+    return tr.route.some(r => r.pkgId === id);
+  }
+
+  if (activeTruckFilter.type === 'byStatus') {
+    const requestedStatus = (activeTruckFilter.value || '').toLowerCase();
+    const truckStatus = tr.delivered.length > 0 ? 'delivered' : 'en route';
+    return truckStatus.includes(requestedStatus);
+  }
+
+  return true;
+}
+
 // Draw the hub, nodes, routes, and trucks on the canvas
 function draw() {
   ctx.clearRect(0, 0, W, H);
@@ -61,57 +86,29 @@ function draw() {
 
   // routes
   for (const tKey of Object.keys(trucks)) {
-    const tr = trucks[tKey]; 
+    const tr = trucks[tKey];
 
-    if (activeTruckFilter.type === 'byTruck' && tKey !== activeTruckFilter.value)  continue;
+    if (!matchesTruckFilter(tKey)) continue;
 
-    if (activeTruckFilter.type ==='byId'){
-      const id = Number(activeTruckFilter.value);
-      const matches = tr.route.some(r => r.pkgId === id);
-      if (!matches) continue;
+    if (tr.route.length) {
+      ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+      ctx.beginPath();
+      ctx.moveTo(hub.x, hub.y);
+      for (const step of tr.route) {
+        const n = nodes[step.addrIdx];
+        if (n) ctx.lineTo(n.x, n.y);
+      }
+      ctx.stroke();
     }
 
-    if (activeTruckFilter.type === 'byStatus') {
-      const requestedStatus = activeTruckFilter.value.toLowerCase();
-      const truckStatus = tr.delivered.length> 0? 'delivered' : 'en route';
-      if (!truckStatus.includes(requestedStatus)) continue;
-    }
-
-    if (tr.route.length){ 
-    ctx.strokeStyle = 'rgba(0,0,0,0.06)'; 
-    ctx.beginPath(); 
-    ctx.moveTo(hub.x, hub.y);
-    for (const step of tr.route) { 
-      const n = nodes[step.addrIdx]; 
-      if (n) ctx.lineTo(n.x, n.y);
-     }
-    ctx.stroke();
-  }
-  //truck
-  ctx.fillStyle = tr.color;
-  ctx.beginPath();
-  ctx.rect(tr.x -10, tr.y-10, 20, 14);
-  ctx.fill();
-  ctx.fillStyle = '#000';
-  ctx.fillText('' + tKey, tr.x - 3, tr.y - 0);
+    ctx.fillStyle = tr.color;
+    ctx.beginPath();
+    ctx.rect(tr.x - 10, tr.y - 10, 20, 14);
+    ctx.fill();
+    ctx.fillStyle = '#000';
+    ctx.fillText('' + tKey, tr.x - 3, tr.y - 0);
   }
 }
-
-  // trucks
-  for (const tKey of Object.keys(trucks)) {
-    const tr = trucks[tKey]; ctx.fillStyle = tr.color; ctx.beginPath(); ctx.rect(tr.x - 10, tr.y - 10, 20, 14); ctx.fill(); ctx.fillStyle = '#000'; ctx.fillText('' + tKey, tr.x - 3, tr.y - 0);
-  }
-  for (const tkey of Object.keys(trucks)) {{
-    const trucksFilter = trucks[tkey];
-    if (activeTruckFilter.type === 'byTruck' && tkey !== activeTruckFilter.value)  continue;
-    if (activeTruckFilter.type ==='byId'){
-      const id = Number(activeTruckFilter.value);
-      const matches = trucksFilter.route.some(r => r.pkgId === id);
-      if (!matches) continue;
-    } 
-
-    }
-  }
 
 
 function step(dt) {
@@ -153,32 +150,45 @@ document.getElementById('pauseBtn').addEventListener('click', () => { playing = 
 document.getElementById('resetBtn').addEventListener('click', () => { playing = false; lastTime = 0; for (const tKey of Object.keys(trucks)) { trucks[tKey].x = hub.x; trucks[tKey].y = hub.y; trucks[tKey].idx = 0; trucks[tKey].delivered = []; } });
 //hide other trucks and packages on the simulation when filtering by truck, ID, or status
 document.getElementById('queryBtn').addEventListener('click', () => {
-  const view = document.getElementById('viewSelect').value; 
+  const view = document.getElementById('viewSelect').value;
   const filterValue = document.getElementById('queryInput').value.trim();
-  activeFilter = { type: view, value: filterValue };
 
-  if (view === 'all'){ renderPackagePanel();
+  if (view === 'all') {
+    activeTruckFilter = { type: 'all', value: null };
+    renderPackagePanel();
     return;
   }
 
-if (view === 'byId') { 
-  const id = parseInt(filterValue,10); 
-  renderPackagePanel(pkg => pkg.id === id); 
-return;
-}
-  if (view === 'byTruck')
-     { const truckKey = filterValue; 
-      if (trucks[truckKey]) { const ids = trucks[truckKey].route.map(r => r.pkgId); 
-        renderPackagePanel(pkg => ids.includes(pkg.id)); } 
-      return;
-    }
- if (view === 'byStatus') 
-  { const requestedStatus = filterValue.toLowerCase(); 
-    renderPackagePanel(pkg => { const delivered = Array.from(Object.values(trucks)).some(tr => tr.delivered.includes(pkg.id)); 
-      const status = delivered ? 'delivered' : 'en route'; 
-      return status.includes(requestedStatus); }); 
-    }
+  if (view === 'byId') {
+    const id = parseInt(filterValue, 10);
+    activeTruckFilter = { type: 'byId', value: String(id) };
+    renderPackagePanel(pkg => pkg.id === id);
+    return;
+  }
 
+  if (view === 'byTruck') {
+    const truckKey = filterValue;
+    activeTruckFilter = { type: 'byTruck', value: truckKey };
+
+    if (trucks[truckKey]) {
+      const ids = trucks[truckKey].route.map(r => r.pkgId);
+      renderPackagePanel(pkg => ids.includes(pkg.id));
+    } else {
+      renderPackagePanel(() => false);
+    }
+    return;
+  }
+
+  if (view === 'byStatus') {
+    const requestedStatus = filterValue.toLowerCase();
+    activeTruckFilter = { type: 'byStatus', value: requestedStatus };
+
+    renderPackagePanel(pkg => {
+      const delivered = Array.from(Object.values(trucks)).some(tr => tr.delivered.includes(pkg.id));
+      const status = delivered ? 'delivered' : 'en route';
+      return status.includes(requestedStatus);
+    });
+  }
 });
 
 // fetch API and initialize
