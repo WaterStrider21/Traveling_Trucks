@@ -66,7 +66,7 @@ function draw() {
   for (const tkey of Object.keys(trucks)) {{
     const trucksFilter = trucks[tkey];
     if (activeTruckFilter.type === 'byTruck' && tkey !== activeTruckFilter.value)  continue;
-    if (activeTruckfilter.type ==='byId'){
+    if (activeTruckFilter.type ==='byId'){
       const id = Number(activeTruckFilter.value);
       const matches = trucksFilter.route.some(r => r.pkgId === id);
       if (!matches) continue;
@@ -117,12 +117,29 @@ document.getElementById('resetBtn').addEventListener('click', () => { playing = 
 document.getElementById('queryBtn').addEventListener('click', () => {
   const view = document.getElementById('viewSelect').value; 
   const filterValue = document.getElementById('queryInput').value.trim();
-  activeFiler = { type: view, value: filterValue };
-  renderPackagePanel();
-  if (view === 'all') renderPackagePanel();
-  else if (view === 'byId') { const id = parseInt(q); renderPackagePanel(pkg => pkg.id === id); }
-  else if (view === 'byTruck') { const t = q; if (trucks[t]) { const ids = trucks[t].route.map(r => r.pkgId); renderPackagePanel(pkg => ids.includes(pkg.id)); } }
-  else if (view === 'byStatus') { const s = q.toLowerCase(); renderPackagePanel(pkg => { const delivered = Array.from(Object.values(trucks)).some(tr => tr.delivered.includes(pkg.id)); const status = delivered ? 'delivered' : 'en route'; return status.includes(s); }); }
+  activeFilter = { type: view, value: filterValue };
+
+  if (view === 'all'){ renderPackagePanel();
+    return;
+  }
+
+if (view === 'byId') { 
+  const id = parseInt(filterValue,10); 
+  renderPackagePanel(pkg => pkg.id === id); 
+return;
+}
+  if (view === 'byTruck')
+     { const truckKey = filterValue; 
+      if (trucks[truckKey]) { const ids = trucks[truckKey].route.map(r => r.pkgId); 
+        renderPackagePanel(pkg => ids.includes(pkg.id)); } 
+      return;
+    }
+ if (view === 'byStatus') 
+  { const requestedStatus = filterValue.toLowerCase(); 
+    renderPackagePanel(pkg => { const delivered = Array.from(Object.values(trucks)).some(tr => tr.delivered.includes(pkg.id)); 
+      const status = delivered ? 'delivered' : 'en route'; 
+      return status.includes(requestedStatus); }); 
+    }
 
 });
 
